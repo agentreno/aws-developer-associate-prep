@@ -1,0 +1,125 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  An Aurora / EC2 example showing IAM role authentication
+  instead of password auth to the database
+
+Parameters:
+  Subnets:
+    Type: CommaDelimitedList
+  DBMasterPassword:
+    Type: String
+    NoEcho: true
+  EC2KeyPairName:
+    Type: String
+
+Resources:
+  RDSCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      DBClusterIdentifier: 'aurora-prototype'
+      MasterUsername: 'root'
+      MasterUserPassword:
+        Ref: DBMasterPassword
+      Engine: aurora-mysql
+      DBClusterParameterGroupName:
+        Ref: RDSDBClusterParameterGroup
+      DBSubnetGroupName:
+        Ref: RDSDBSubnetGroup
+
+  RDSDBInstance1:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBParameterGroupName:
+        Ref: RDSDBParameterGroup
+      Engine: aurora-mysql
+      DBClusterIdentifier:
+        Ref: RDSCluster
+      PubliclyAccessible: 'true'
+      DBInstanceClass: db.t2.medium
+      DBSubnetGroupName:
+        Ref: RDSDBSubnetGroup
+
+  RDSDBClusterParameterGroup:
+    Type: AWS::RDS::DBClusterParameterGroup
+    Properties:
+      Description: Aurora Prototype Parameter Group
+      Family: aurora-mysql5.7
+      Parameters:
+        time_zone: Europe/Dublin
+
+  RDSDBParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Description: Aurora Prototype Parameter Group
+      Family: aurora-mysql5.7
+      Parameters:
+        sql_mode: IGNORE_SPACE
+
+  RDSDBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: aurora-prototype
+      SubnetIds:
+        Ref: Subnets
+
+  # Would have preferred to lock down policy to connect only to the cluster created in this template
+  # Unfortunately CloudFormation doesn't supply a Resource ID attribute for the cluster so I can't
+  # Format would normally be: arn:aws:rds-db:<region>:<account ID>:dbuser:cluster-XXXXXXXXXXXXXXXXXXXXXX/<db username>
+  AccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: 'aurora-prototype-access'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Effect: 'Allow'
+            Action: 'rds-db:connect'
+            Resource: '*'
+      Roles:
+        -
+          Ref: AccessRole
+
+  AccessRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Effect: 'Allow'
+            Principal:
+              Service:
+                - 'ec2.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+  
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        -
+          Ref: AccessRole
+
+  ClientInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      IamInstanceProfile:
+        Ref: InstanceProfile
+      InstanceType: 't2.micro'
+      ImageId: 'ami-58d7e821'
+      SubnetId: 'subnet-e830dab2'
+      KeyName: !Ref EC2KeyPairName
+      Tags:
+        -
+          Key: Name
+          Value: 'aurora-prototype'
+
+
+Outputs:
+  ClusterEndpointAddress:
+    Value:  !GetAtt RDSCluster.Endpoint.Address
+  ClusterEndpointPort:
+    Value:  !GetAtt RDSCluster.Endpoint.Port
+  InstanceIP:
+    Value: !GetAtt ClientInstance.PublicIp
