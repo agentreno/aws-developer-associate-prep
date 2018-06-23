@@ -27,9 +27,9 @@ to get familiar with API calls, command lines and Boto usage.
       https://aws.amazon.com/dynamodb/faqs/
 
 - IAM
-    - Use the IAM AssumeRole call directly to get time-limited credentials for
-      a particular role
-    - Call STS GetSessionToken API for my IAM user
+    - ~~Use the IAM AssumeRole call directly to get time-limited credentials for
+      a particular role~~
+    - ~~Call STS GetSessionToken API for my IAM user~~
     - ~~Create an Aurora/EC2/IAM role prototype showing how database credentials
       can be rotated and used automatically by the app instead of a password~~
     - Try out the policy simulator
