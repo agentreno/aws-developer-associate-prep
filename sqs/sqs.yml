@@ -1,0 +1,80 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  An example of using SQS and KMS together to encrypt messages client-side
+
+Resources:
+  CustomerMasterKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: 'sqs-kms-prototype master key'
+      KeyPolicy:
+        Version: '2012-10-17'
+        Id: 'sqs-kms-prototype-master-key'
+        Statement:
+          -
+            Sid: 'Allow administration of key'
+            Effect: 'Allow'
+            Action:
+              - 'kms:Create*'
+              - 'kms:Describe*'
+              - 'kms:Enable**'
+              - 'kms:List*'
+              - 'kms:Put*'
+              - 'kms:Update*'
+              - 'kms:Revoke*'
+              - 'kms:Disable*'
+              - 'kms:Get*'
+              - 'kms:Delete*'
+              - 'kms:ScheduleKeyDeletion'
+              - 'kms:CancelKeyDeletion'
+            Resource: '*'
+            Principal:
+              # The user creating this stack must be able to administer the key
+              # To avoid creating a key you can't destroy
+              AWS: 'arn:aws:iam::433473615199:user/karl' 
+          -
+            Sid: 'Allow key use for encrypt/decrypt only'
+            Effect: 'Allow'
+            Action:
+              - 'kms:Encrypt'
+              - 'kms:Decrypt'
+              - 'kms:ReEncrypt'
+              - 'kms:GenerateDataKey*'
+              - 'kms:DescribeKey'
+            Resource: '*'
+            Principal:
+              AWS: !GetAtt ExampleUser.Arn
+
+  ExampleUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: 'sqs-kms-prototype-user'
+      Policies:
+        -
+          PolicyName: sqs-kms-prototype-access-queue
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              -
+                Effect: 'Allow'
+                Action:
+                  - 'sqs:*'
+                Resource: !GetAtt ExampleQueue.Arn
+
+  AccessKey:
+    Type: AWS::IAM::AccessKey
+    Properties:
+      UserName: !Ref ExampleUser
+
+  ExampleQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      # Could add KmsMasterKeyId here to enable SSE
+      QueueName: 'sqs-kms-prototype-queue'
+      VisibilityTimeout: 10
+
+Outputs:
+  AccessKeyId:
+    Value: !Ref AccessKey
+  SecretAccessKey:
+    Value: !GetAtt AccessKey.SecretAccessKey
