@@ -12,12 +12,12 @@ to get familiar with API calls, command lines and Boto usage.
     - Create all of the below using CloudFormation templates
 
 - SQS and KMS
-    - Create a new standard queue, post a message to it and immediately read
-      it, allow visibility timeout to expire, read it again then remove it.
-    - Send a batch of messages and retrieve it with long polling
+    - ~~Create a new standard queue, post a message to it and immediately read
+      it, allow visibility timeout to expire, read it again then remove it.~~
+    - ~~Send a batch of messages and retrieve it with long polling~~
     - Setup a DLQ
-    - Encrypt a message with a KMS-stored master key, queue it, retrieve it and
-      decrypt it again
+    - ~~Encrypt a message with a KMS-stored master key, queue it, retrieve it and
+      decrypt it again~~
 
 - DynamoDB
     - Create a table and insert and read back some dummy data
