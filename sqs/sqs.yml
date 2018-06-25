@@ -45,6 +45,12 @@ Resources:
             Principal:
               AWS: !GetAtt ExampleUser.Arn
 
+  KeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: 'alias/sqs-kms-prototype/main'
+      TargetKeyId: !Ref CustomerMasterKey
+
   ExampleUser:
     Type: AWS::IAM::User
     Properties:
