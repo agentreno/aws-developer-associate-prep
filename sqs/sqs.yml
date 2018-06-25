@@ -65,7 +65,9 @@ Resources:
                 Effect: 'Allow'
                 Action:
                   - 'sqs:*'
-                Resource: !GetAtt ExampleQueue.Arn
+                Resource:
+                  - !GetAtt ExampleQueue.Arn
+                  - !GetAtt DLQ.Arn
 
   AccessKey:
     Type: AWS::IAM::AccessKey
@@ -78,6 +80,14 @@ Resources:
       # Could add KmsMasterKeyId here to enable SSE
       QueueName: 'sqs-kms-prototype-queue'
       VisibilityTimeout: 10
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt DLQ.Arn
+        maxReceiveCount: 1
+
+  DLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: 'sqs-kms-prototype-dlq'
 
 Outputs:
   AccessKeyId:
