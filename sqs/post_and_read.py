@@ -14,6 +14,7 @@ response = client.send_message(
 )
 
 # Read it back
+# Technically this is long polling as WaitTimeSeconds is supplied
 first_messages = client.receive_message(
     QueueUrl=queue,
     WaitTimeSeconds=1
