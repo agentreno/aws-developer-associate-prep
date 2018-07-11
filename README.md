@@ -20,7 +20,7 @@ to get familiar with API calls, command lines and Boto usage.
       decrypt it again~~
 
 - DynamoDB
-    - Create a table and insert and read back some dummy data
+    - ~~Create a table and insert and read back some dummy data~~
     - Create global and local secondary indexes
     - Try a conditional operation for a counter (with some threads?)
     - Make a note of the API operations into flashcards from here:
