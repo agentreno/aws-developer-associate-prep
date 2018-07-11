@@ -1,0 +1,47 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  An example of DynamoDB with global and local secondary indexes, conditional
+  writes and atomic counters
+
+Resources:
+  DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: "dynamodb-prototype-users-by-email"
+      AttributeDefinitions:
+        -
+          AttributeName: "user_id"
+          AttributeType: "S"
+        -
+          AttributeName: "email_address"
+          AttributeType: "S"
+        -
+          AttributeName: "account_id"
+          AttributeType: "S"
+      KeySchema:
+        -
+          AttributeName: "email_address"
+          KeyType: "HASH"
+        -
+          AttributeName: "account_id"
+          KeyType: "RANGE"
+      ProvisionedThroughput:
+        ReadCapacityUnits: "1"
+        WriteCapacityUnits: "1"
+      GlobalSecondaryIndexes:
+        -
+          IndexName: "dynamodb-prototype-users-by-id"
+          KeySchema:
+            -
+              AttributeName: "user_id"
+              KeyType: "HASH"
+            -
+              AttributeName: "account_id"
+              KeyType: "RANGE"
+          Projection:
+            NonKeyAttributes:
+              - "login_count"
+            ProjectionType: "INCLUDE"
+          ProvisionedThroughput:
+            ReadCapacityUnits: "1"
+            WriteCapacityUnits: "1"
